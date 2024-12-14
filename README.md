@@ -60,3 +60,8 @@ Check notebooks/agents_demo.ipynb
 ## License
 
 This code is licensed under the MIT License. See the LICENSE file for more details.
+
+## Data source
+
+Sample PDF: https://raw.githubusercontent.com/SharifiZarchi/Introduction_to_Machine_Learning/main/Slides/Chapter_05_Natural_Language_Processing/04-LLM%26Adaptation/LLM%20%26%20Adaptation.pdf
+Document VQA: https://rrc.cvc.uab.es/?ch=17&com=downloads or https://huggingface.co/datasets/lmms-lab/DocVQA
