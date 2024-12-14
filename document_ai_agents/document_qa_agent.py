@@ -33,7 +33,8 @@ class VerificationChainOfThoughts(BaseModel):
 
 class DocumentQAState(BaseModel):
     question: str
-    pages_as_base64_jpeg_images: list[str]
+    pages_as_base64_jpeg_images: list[str] = Field(..., default_factory=list)
+    pages_as_text: list[str] = Field(..., default_factory=list)
     answer_cot: Optional[AnswerChainOfThoughts] = None
     verification_cot: Optional[VerificationChainOfThoughts] = None
 
@@ -55,11 +56,15 @@ class DocumentQAAgent:
 
     def answer_question(self, state: DocumentQAState):
         logger.info(f"Responding to question {state.question}")
+        assert (
+            state.pages_as_base64_jpeg_images or state.pages_as_text
+        ), "Input text or images"
         messages = (
             [
                 {"mime_type": "image/jpeg", "data": base64_jpeg}
                 for base64_jpeg in state.pages_as_base64_jpeg_images
             ]
+            + state.pages_as_text
             + [
                 f"Answer this question using the context images and text elements only: {state.question}",
             ]
@@ -82,7 +87,9 @@ class DocumentQAAgent:
 
     def verify_answer(self, state: DocumentQAState):
         logger.info(f"Verifying answer {state.answer_cot.answer}")
-
+        assert (
+            state.pages_as_base64_jpeg_images or state.pages_as_text
+        ), "Input text or images"
         if state.answer_cot.answer == "N/A":
             return {
                 "verification_cot": VerificationChainOfThoughts(
@@ -95,6 +102,7 @@ class DocumentQAAgent:
                 {"mime_type": "image/jpeg", "data": base64_jpeg}
                 for base64_jpeg in state.pages_as_base64_jpeg_images
             ]
+            + state.pages_as_text
             + [
                 f"Consider this question: {state.question} and its candidate answer: {state.answer_cot.answer}. "
                 "Can this answer be verified from this context?",
@@ -138,9 +146,12 @@ if __name__ == "__main__":
     images = extract_images_from_pdf(pdf_path=document_path)
     pages_as_base64_jpeg_images = [pil_image_to_base64_jpeg(x) for x in images]
 
+    s = DocumentQAState(question="ddd")
+
     state2 = DocumentQAState(
-        question="Who was the 20th president of the united states ?",
+        question="What is the highest score on M-RCNN ?",
         pages_as_base64_jpeg_images=pages_as_base64_jpeg_images,
+        pages_as_text=[],
     )
 
     agent = DocumentQAAgent()
@@ -149,3 +160,6 @@ if __name__ == "__main__":
 
     print(result["answer_cot"])
     print(result["verification_cot"])
+
+    assert result["answer_cot"].answer == "0.708"
+    assert result["verification_cot"].verified
