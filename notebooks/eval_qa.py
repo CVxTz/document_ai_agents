@@ -9,14 +9,14 @@ if __name__ == "__main__":
         / "data"
         / "docvqa"
         / "spdocvqa_images"
-        / "hsyn0081_24.png"
+        / "hxxl0226_1.png"
     )
 
     pages_as_base64_jpeg_images = [image_file_to_base64_jpeg(image_path)]
 
     state = DocumentQAState(
         # question="What is the milk substitute discussed in this document?",
-        question="What is the objective of reducing the price?",
+        question="What day of the week was this invoice received?",
         pages_as_base64_jpeg_images=pages_as_base64_jpeg_images,
         pages_as_text=[],
     )

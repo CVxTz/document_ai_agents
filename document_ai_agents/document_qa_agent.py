@@ -1,5 +1,5 @@
 import json
-from typing import Optional
+from typing import Literal, Optional
 
 import google.generativeai as genai
 from langgraph.graph import END, START, StateGraph
@@ -24,15 +24,15 @@ class VerificationChainOfThoughts(BaseModel):
         ...,
         description="Justification of your answers.",
     )
-    relevant: bool = Field(
+    relevant: Literal["Yes", "No"] = Field(
         ...,
         description="Does the candidate response actually answer the question? "
-        "If so, answer true, otherwise answer false.",
+        "If so, answer 'Yes', otherwise answer 'No'.",
     )
-    verified: bool = Field(
+    verified: Literal["Yes", "No"] = Field(
         ...,
-        description="Answer true if the answer can be verified from the context and "
-        "false otherwise.",
+        description="Answer 'Yes' if the answer can be verified from the context and "
+        "'No' otherwise.",
     )
 
 
@@ -91,14 +91,14 @@ class DocumentQAAgent:
         return {"answer_cot": answer_cot}
 
     def verify_answer(self, state: DocumentQAState):
-        logger.info(f"Verifying answer {state.answer_cot.answer}")
+        logger.info(f"Verifying answer '{state.answer_cot.answer}'")
         assert (
             state.pages_as_base64_jpeg_images or state.pages_as_text
         ), "Input text or images"
         if state.answer_cot.answer == "N/A":
             return {
                 "verification_cot": VerificationChainOfThoughts(
-                    rationale="", verified=False
+                    rationale="", relevant="No", verified="No"
                 )
             }
 
@@ -110,9 +110,9 @@ class DocumentQAAgent:
             + state.pages_as_text
             + [
                 f"Consider this question: '{state.question}' and its candidate response: '{state.answer_cot.answer}'. "
-                "Does this response answer the question? Answer true if it is relevant otherwise answer false."
-                "Can this answer be verified from this context? Only answer true if you can verify this answer "
-                "explicitly from the context. Answer false if you have doubts. "
+                "Does this response answer the question? Answer 'Yes' if it is relevant otherwise answer 'No'."
+                "Can this answer be verified from this context? Only answer 'Yes' if you can verify this answer "
+                "explicitly from the context. Answer 'No' if you have doubts. "
                 "Do not interpolate and only answer from explicit evidence.",
             ]
             + [
