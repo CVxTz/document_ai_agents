@@ -22,12 +22,17 @@ class AnswerChainOfThoughts(BaseModel):
 class VerificationChainOfThoughts(BaseModel):
     rationale: str = Field(
         ...,
-        description="Justification of your verification.",
+        description="Justification of your answers.",
+    )
+    relevant: bool = Field(
+        ...,
+        description="Does the candidate response actually answer the question? "
+        "If so, answer true, otherwise answer false.",
     )
     verified: bool = Field(
         ...,
         description="Answer true if the answer can be verified from the context and "
-        "false otherwise",
+        "false otherwise.",
     )
 
 
@@ -45,7 +50,6 @@ class DocumentQAAgent:
         self.verification_cot_schema = prepare_schema_for_gemini(
             VerificationChainOfThoughts
         )
-
         self.model_name = model_name
         self.model = genai.GenerativeModel(
             self.model_name,
@@ -55,7 +59,7 @@ class DocumentQAAgent:
         self.build_agent()
 
     def answer_question(self, state: DocumentQAState):
-        logger.info(f"Responding to question {state.question}")
+        logger.info(f"Responding to question '{state.question}'")
         assert (
             state.pages_as_base64_jpeg_images or state.pages_as_text
         ), "Input text or images"
@@ -78,6 +82,7 @@ class DocumentQAAgent:
             generation_config={
                 "response_mime_type": "application/json",
                 "response_schema": self.answer_cot_schema,
+                "temperature": 0.0,
             },
         )
 
@@ -104,7 +109,8 @@ class DocumentQAAgent:
             ]
             + state.pages_as_text
             + [
-                f"Consider this question: {state.question} and its candidate answer: {state.answer_cot.answer}. "
+                f"Consider this question: '{state.question}' and its candidate response: '{state.answer_cot.answer}'. "
+                "Does this response answer the question? Answer true if it is relevant otherwise answer false."
                 "Can this answer be verified from this context? Only answer true if you can verify this answer "
                 "explicitly from the context. Answer false if you have doubts. "
                 "Do not interpolate and only answer from explicit evidence.",
@@ -119,6 +125,7 @@ class DocumentQAAgent:
             generation_config={
                 "response_mime_type": "application/json",
                 "response_schema": self.verification_cot_schema,
+                "temperature": 0.0,
             },
         )
 
@@ -148,7 +155,7 @@ if __name__ == "__main__":
     images = extract_images_from_pdf(pdf_path=document_path)
     pages_as_base64_jpeg_images = [pil_image_to_base64_jpeg(x) for x in images]
 
-    state = DocumentQAState(
+    _state = DocumentQAState(
         question="What is the highest score on M-RCNN ?",
         pages_as_base64_jpeg_images=pages_as_base64_jpeg_images,
         pages_as_text=[],
@@ -156,7 +163,7 @@ if __name__ == "__main__":
 
     agent = DocumentQAAgent()
 
-    result = agent.graph.invoke(state)
+    result = agent.graph.invoke(_state)
 
     print(result["answer_cot"])
     print(result["verification_cot"])
