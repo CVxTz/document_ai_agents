@@ -105,7 +105,9 @@ class DocumentQAAgent:
             + state.pages_as_text
             + [
                 f"Consider this question: {state.question} and its candidate answer: {state.answer_cot.answer}. "
-                "Can this answer be verified from this context?",
+                "Can this answer be verified from this context? Only answer true if you can verify this answer "
+                "explicitly from the context. Answer false if you have doubts. "
+                "Do not interpolate and only answer from explicit evidence.",
             ]
             + [
                 f"Use this schema for your answer: {self.verification_cot_schema}",
@@ -146,9 +148,7 @@ if __name__ == "__main__":
     images = extract_images_from_pdf(pdf_path=document_path)
     pages_as_base64_jpeg_images = [pil_image_to_base64_jpeg(x) for x in images]
 
-    s = DocumentQAState(question="ddd")
-
-    state2 = DocumentQAState(
+    state = DocumentQAState(
         question="What is the highest score on M-RCNN ?",
         pages_as_base64_jpeg_images=pages_as_base64_jpeg_images,
         pages_as_text=[],
@@ -156,7 +156,7 @@ if __name__ == "__main__":
 
     agent = DocumentQAAgent()
 
-    result = agent.graph.invoke(state2)
+    result = agent.graph.invoke(state)
 
     print(result["answer_cot"])
     print(result["verification_cot"])

@@ -20,6 +20,25 @@ def pil_image_to_base64_jpeg(rgb_image: Image):
     return img_str
 
 
+def image_file_to_base64_jpeg(image_path: str) -> str:
+    """
+    Reads an image from disk, converts it to JPEG, and encodes it as a base64 string.
+    """
+    # Open the image
+    rgb_image = Image.open(image_path).convert("RGB")
+
+    # In-memory buffer for the JPEG image
+    buffered = io.BytesIO()
+
+    # Save as JPEG
+    rgb_image.save(buffered, format="JPEG")
+
+    # Encode as base64
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+
+    return img_str
+
+
 def base64_to_pil_image(base64_string: str):
     # Decode the base64 string into binary data
     image_data = base64.b64decode(base64_string)
