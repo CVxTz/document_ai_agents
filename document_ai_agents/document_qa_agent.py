@@ -15,7 +15,7 @@ class AnswerChainOfThoughts(BaseModel):
         description="Justification of your answer.",
     )
     answer: str = Field(
-        ..., description="""Your Answer. Answer with "N/A" if answer is not found"""
+        ..., description="Your Answer. Answer with 'N/A' if answer is not found"
     )
 
 
