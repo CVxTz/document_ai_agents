@@ -45,7 +45,7 @@ class DocumentQAState(BaseModel):
 
 
 class DocumentQAAgent:
-    def __init__(self, model_name="gemini-1.5-flash-002"):
+    def __init__(self, model_name="gemini-1.5-flash-8b"):
         self.answer_cot_schema = prepare_schema_for_gemini(AnswerChainOfThoughts)
         self.verification_cot_schema = prepare_schema_for_gemini(
             VerificationChainOfThoughts
