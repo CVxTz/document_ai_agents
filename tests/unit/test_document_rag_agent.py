@@ -27,4 +27,4 @@ def test_rag_agent():
 
     result2 = agent2.graph.invoke(state2)
 
-    assert "acknowledged" in result2["response"]
+    assert "Manoj" in result2["response"]
